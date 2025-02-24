@@ -48,7 +48,8 @@ import {
   Users,
   ArrowUpRight,
   Beaker,
-  Palette
+  Palette,
+  Star
 } from 'lucide-react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { getCategories, getTools } from '../lib/supabase';
@@ -121,6 +122,15 @@ const iconMap = {
   Palette
 };
 
+const colorClasses = [
+  'bg-blue-500',
+  'bg-purple-500',
+  'bg-green-500',
+  'bg-amber-500',
+  'bg-rose-500',
+  'bg-indigo-500',
+];
+
 export function Categories() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -182,14 +192,59 @@ export function Categories() {
     category.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 mb-8 text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white px-6 py-12">
       <div className="max-w-7xl mx-auto">
+        {/* Animated Header with Icon */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mb-4">
+          <div className="flex justify-center mb-8">
+            <div className="relative group">
+              {/* Animated background glow */}
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
+              
+              {/* Main icon with rotation and scale animation */}
+              <div className="relative bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
+                <div className={`w-24 h-24 rounded-2xl flex items-center justify-center`}>
+                  <Icon icon={Folder} size={48} className="text-blue-500" />
+                </div>
+                
+                {/* Orbiting elements */}
+                <div className="absolute inset-0 animate-spin-slow">
+                  <Star className="w-8 h-8 text-yellow-500 absolute -top-4 left-1/2 -translate-x-1/2 transform -rotate-12" />
+                  <MessageSquare className="w-8 h-8 text-purple-500 absolute -bottom-4 left-1/2 -translate-x-1/2 transform rotate-12" />
+                  <Zap className="w-8 h-8 text-green-500 absolute top-1/2 -right-4 -translate-y-1/2" />
+                  <Search className="w-8 h-8 text-red-500 absolute top-1/2 -left-4 -translate-y-1/2" />
+                </div>
+                
+                {/* Particle effects */}
+                <div className="absolute inset-0">
+                  <div className="absolute top-0 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-float-particle-1"></div>
+                  <div className="absolute bottom-0 right-1/4 w-2 h-2 bg-purple-500 rounded-full animate-float-particle-2"></div>
+                  <div className="absolute top-1/2 right-0 w-2 h-2 bg-green-500 rounded-full animate-float-particle-3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mb-4 animate-fade-in">
             Catégories
           </h1>
-          <p className="text-center text-gray-400 mb-12 max-w-3xl mx-auto">
+          <p className="text-center text-gray-400 mb-12 max-w-3xl mx-auto animate-fade-in">
             Explorez notre catalogue d'outils d'intelligence artificielle par catégorie
           </p>
         </div>
@@ -207,31 +262,25 @@ export function Categories() {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 mb-8 text-red-500">
-            {error}
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="flex justify-center items-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        {filteredCategories.length === 0 ? (
+          <div className="text-center text-gray-500">
+            Aucune catégorie trouvée
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCategories.map((category) => (
+            {filteredCategories.map((category, index) => (
               <div
                 key={category.slug}
                 className="bg-gray-900/50 rounded-xl p-6 border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10"
               >
-                <div className="w-16 h-16 rounded-2xl bg-blue-500 bg-opacity-10 flex items-center justify-center mb-4">
+                <div className={`w-16 h-16 rounded-2xl ${colorClasses[index % colorClasses.length]} flex items-center justify-center mb-4`}>
                   {(() => {
                     const IconComponent = iconMap[category.icon];
                     if (!IconComponent) {
                       console.warn(`Icône manquante pour ${category.name}: ${category.icon}`);
-                      return <Icon icon={Folder} size={32} variant="primary" />;
+                      return <Icon icon={Folder} size={32} className="text-white" />;
                     }
-                    return <Icon icon={IconComponent} size={32} variant="primary" />;
+                    return <Icon icon={IconComponent} size={32} className="text-white" />;
                   })()}
                 </div>
 

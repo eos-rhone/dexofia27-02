@@ -1,7 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Search, Star, Users, Eye, MessageSquare, ArrowUpRight, MessageSquare as MessageIcon, Image, Music, FileSpreadsheet, Microscope, Zap, Layout, Cuboid as Cube, Mic2, GraduationCap, Bot, Shield, Heart, LineChart, Home, Gamepad, FlaskRound as Flask, Scale, Video, FileText, BarChart, Code, Palette, Newspaper, Brain, Sparkles, Wand2, PenTool, Briefcase, Lightbulb, Rocket, Languages, Car, Leaf, Shirt, Building2, Glasses, TrendingUp } from 'lucide-react';
+import { Icon } from '../components/Icon';
+import { 
+  Search, 
+  MessageSquare, 
+  Image, 
+  Music, 
+  FileText, 
+  Microscope, 
+  Zap, 
+  Layout, 
+  Cuboid, 
+  Mic2, 
+  GraduationCap, 
+  Folder,
+  Star, 
+  Bot, 
+  Shield, 
+  Heart, 
+  LineChart, 
+  Home, 
+  Gamepad, 
+  Beaker,
+  Scale, 
+  Languages, 
+  Car, 
+  Leaf, 
+  Shirt, 
+  Building2,
+  Users, 
+  Brain, 
+  Code, 
+  Video, 
+  Camera, 
+  Briefcase,
+  Database,
+  Headphones,
+  Radio,
+  Palette,
+  Building,
+  Factory,
+  Truck,
+  Film,
+  Mountain,
+  Waves,
+  Pencil,
+  Dumbbell,
+  Eye,
+  ArrowUpRight,
+  Rocket,
+  FlaskConical,
+  CircuitBoard,
+  Globe,
+  Glasses
+} from 'lucide-react';
 import { getTools, getCategories } from '../lib/supabase';
+import { AiBrain } from '../components/icons/AiBrain';
+import { Acoustic } from '../components/icons/Acoustic';
 
 interface Tool {
   id: string;
@@ -33,35 +88,67 @@ interface Category {
   icon: string;
 }
 
-const iconMap: { [key: string]: React.ReactNode } = {
-  // Catégories principales
-  MessageSquare: <MessageIcon className="w-16 h-16" />,
-  Image: <Image className="w-16 h-16" />,
-  Music: <Music className="w-16 h-16" />,
-  BarChart: <BarChart className="w-16 h-16" />,
-  Mic2: <Mic2 className="w-16 h-16" />,
-  TrendingUp: <TrendingUp className="w-16 h-16" />,
-  GraduationCap: <GraduationCap className="w-16 h-16" />,
-  Video: <Video className="w-16 h-16" />,
-  FileText: <FileText className="w-16 h-16" />,
-  
-  // Nouvelles catégories
-  Bot: <Bot className="w-16 h-16" />,
-  Shield: <Shield className="w-16 h-16" />,
-  Heart: <Heart className="w-16 h-16" />,
-  LineChart: <LineChart className="w-16 h-16" />,
-  Home: <Home className="w-16 h-16" />,
-  Gamepad: <Gamepad className="w-16 h-16" />,
-  Flask: <Flask className="w-16 h-16" />,
-  Scale: <Scale className="w-16 h-16" />,
-  Languages: <Languages className="w-16 h-16" />,
-  Car: <Car className="w-16 h-16" />,
-  Leaf: <Leaf className="w-16 h-16" />,
-  Shirt: <Shirt className="w-16 h-16" />,
-  Building2: <Building2 className="w-16 h-16" />,
-  Users: <Users className="w-16 h-16" />,
-  Glasses: <Glasses className="w-16 h-16" />
+const iconMap = {
+  MessageSquare,
+  Image,
+  Music,
+  FileSpreadsheet: FileText,
+  Microscope,
+  Zap,
+  Layout,
+  Cube: Cuboid,
+  Mic2,
+  GraduationCap,
+  Bot,
+  Shield,
+  Heart,
+  LineChart,
+  Home,
+  Gamepad,
+  Flask: Beaker,
+  Scale,
+  Languages,
+  Car,
+  Leaf,
+  Shirt,
+  Building2,
+  Users,
+  Brain,
+  Code,
+  Video,
+  Camera,
+  Briefcase,
+  Database,
+  Headphones,
+  Radio,
+  AiBrain,
+  Acoustic,
+  Palette,
+  Building,
+  Factory,
+  Truck,
+  Film,
+  Mountain,
+  Waves,
+  Pencil,
+  Dumbbell,
+  Eye,
+  Rocket,
+  FlaskConical,
+  CircuitBoard,
+  Globe,
+  Glasses,
+  Folder
 };
+
+const colorClasses = [
+  'bg-blue-500',
+  'bg-purple-500',
+  'bg-green-500',
+  'bg-amber-500',
+  'bg-rose-500',
+  'bg-indigo-500',
+];
 
 export function CategoryPage() {
   const { slug } = useParams();
@@ -77,6 +164,7 @@ export function CategoryPage() {
         // Charger la catégorie
         const categoriesData = await getCategories();
         const currentCategory = categoriesData.find(cat => cat.slug === slug);
+        console.log('Catégorie chargée:', currentCategory);
         setCategory(currentCategory || null);
 
         // Charger les outils de la catégorie
@@ -84,6 +172,7 @@ export function CategoryPage() {
           category: slug,
           search: searchQuery
         });
+        console.log('Outils chargés:', toolsData);
         setTools(toolsData);
       } catch (error) {
         console.error('Error loading category data:', error);
@@ -94,6 +183,13 @@ export function CategoryPage() {
 
     loadData();
   }, [slug, searchQuery]);
+
+  // Debug: afficher l'état actuel
+  console.log('État actuel:', {
+    category,
+    iconComponent: category ? iconMap[category.icon] : null,
+    availableIcons: Object.keys(iconMap)
+  });
 
   const getBadges = (tool: Tool) => {
     const badges = [];
@@ -135,8 +231,15 @@ export function CategoryPage() {
               
               {/* Main category icon with rotation and scale animation */}
               <div className="relative bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
-                <div className="text-blue-500 animate-float">
-                  {iconMap[category.icon]}
+                <div className={`w-24 h-24 rounded-2xl ${colorClasses[0]} flex items-center justify-center`}>
+                  {(() => {
+                    const IconComponent = iconMap[category.icon];
+                    if (!IconComponent) {
+                      console.warn(`Icône manquante pour ${category.name}: ${category.icon}`);
+                      return <Icon icon={Folder} size={48} className="text-white" />;
+                    }
+                    return <Icon icon={IconComponent} size={48} className="text-white" />;
+                  })()}
                 </div>
                 
                 {/* Orbiting elements */}

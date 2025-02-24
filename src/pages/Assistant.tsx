@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, Brain, MessageSquare } from 'lucide-react';
+import { Bot, Brain, MessageSquare, Star, Zap, Search } from 'lucide-react';
 import { getTools } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
@@ -92,7 +92,22 @@ export function Assistant() {
             <div className="relative group">
               <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
               <div className="relative bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
-                <Brain className="w-16 h-16 text-blue-500 animate-float" />
+                <Brain className="w-16 h-16 text-blue-500" />
+                
+                {/* Orbiting elements */}
+                <div className="absolute inset-0 animate-spin-slow">
+                  <Star className="w-8 h-8 text-yellow-500 absolute -top-4 left-1/2 -translate-x-1/2 transform -rotate-12" />
+                  <MessageSquare className="w-8 h-8 text-purple-500 absolute -bottom-4 left-1/2 -translate-x-1/2 transform rotate-12" />
+                  <Zap className="w-8 h-8 text-green-500 absolute top-1/2 -right-4 -translate-y-1/2" />
+                  <Search className="w-8 h-8 text-red-500 absolute top-1/2 -left-4 -translate-y-1/2" />
+                </div>
+                
+                {/* Particle effects */}
+                <div className="absolute inset-0">
+                  <div className="absolute top-0 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-float-particle-1"></div>
+                  <div className="absolute bottom-0 right-1/4 w-2 h-2 bg-purple-500 rounded-full animate-float-particle-2"></div>
+                  <div className="absolute top-1/2 right-0 w-2 h-2 bg-green-500 rounded-full animate-float-particle-3"></div>
+                </div>
               </div>
             </div>
           </div>

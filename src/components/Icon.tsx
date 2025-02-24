@@ -23,8 +23,7 @@ export function Icon({ icon: IconComponent, size = 24, className, variant = 'def
       size={size}
       className={cn(
         'transition-colors duration-200',
-        variantStyles[variant],
-        className
+        className || variantStyles[variant]
       )}
     />
   );
