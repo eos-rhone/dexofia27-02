@@ -250,3 +250,52 @@ export async function submitReview(toolId: string, rating: number, comment: stri
     throw error;
   }
 }
+
+// Fonction pour mettre à jour l'icône d'une catégorie
+export const updateCategoryIcon = async (categoryName: string, iconName: string) => {
+  return await withRetry(async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .update({ icon: iconName })
+      .eq('name', categoryName);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  });
+};
+
+// Fonction pour mettre à jour toutes les icônes des catégories
+export const updateAllCategoryIcons = async () => {
+  const categoryIcons = {
+    'Acoustique': 'Headphones',
+    'Analyse de données': 'LineChart',
+    'Archéologie': 'Microscope',
+    'Astronomie & Espace': 'Rocket',
+    'Biotechnologie': 'Flask',
+    'Blockchain & Web3': 'CircuitBoard',
+    'Business & Marketing': 'LineChart',
+    'Énergie & Climat': 'Leaf',
+    'Géologie': 'Mountain',
+    'Impression 3D': 'Cube',
+    'Industrie 4.0': 'Factory',
+    'Logistique': 'Truck',
+    'Médias & Divertissement': 'Film',
+    'Musées & Patrimoine': 'Building',
+    'Océanographie': 'Waves',
+    'Recherche': 'Search',
+    'Rédaction & Contenu': 'PenNib',
+    'Sport & Fitness': 'Dumbbell'
+  };
+
+  for (const [categoryName, iconName] of Object.entries(categoryIcons)) {
+    try {
+      await updateCategoryIcon(categoryName, iconName);
+      console.log(`Mise à jour réussie pour ${categoryName} avec l'icône ${iconName}`);
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour de ${categoryName}:`, error);
+    }
+  }
+};

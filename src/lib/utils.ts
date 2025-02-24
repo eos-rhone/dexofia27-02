@@ -1,3 +1,10 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
 // Fonction pour analyser le contexte de la conversation
 export function analyzeConversationContext(messages: any[]): {
   topics: string[];
