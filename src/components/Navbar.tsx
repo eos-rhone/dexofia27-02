@@ -39,7 +39,7 @@ export function Navbar() {
             <div className="absolute inset-0 bg-blue-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
             
             <div className="relative">
-              <div className="relative bg-gray-900/80 p-2 rounded-lg transform group-hover:scale-110 transition-transform duration-500">
+              <div className="relative transform group-hover:scale-110 transition-transform duration-500">
                 <Brain className="w-8 h-8 text-blue-500 animate-float" />
                 
                 <div className="absolute inset-0 animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity duration-300">

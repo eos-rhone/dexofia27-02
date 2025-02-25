@@ -17,7 +17,7 @@ function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
       <Navbar />
-      <main className="container mx-auto px-4 pt-20">
+      <main className="w-full pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/categories" element={<Categories />} />
