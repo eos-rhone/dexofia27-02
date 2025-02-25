@@ -525,3 +525,152 @@ body {
 .theme-light .group:hover .transition-opacity {
   opacity: 1;
 }
+
+/* Rendre le fond de l'icône transparent dans le thème clair */
+.theme-light div[class*="bg-gray-900"] {
+  background-color: transparent !important;
+}
+
+/* Rendre le fond des icônes de catégories transparent dans le thème clair */
+.theme-light div[class*="rounded-2xl"] {
+  background-color: transparent !important;
+}
+
+/* Changer la couleur des icônes de catégories dans le thème clair */
+.theme-light .text-white,
+.theme-light .text-blue-500,
+.theme-light .text-yellow-500,
+.theme-light .text-purple-500,
+.theme-light .text-green-500,
+.theme-light .text-red-500 {
+  color: #2C3E50 !important;
+}
+
+/* Conserver les styles pour les textes colorés */
+.theme-light h1.text-transparent {
+  color: transparent !important;
+}
+
+/* Conserver les animations et autres styles */
+.theme-light .group:hover .transform {
+  transform: scale(1.05);
+}
+
+.theme-light .group:hover .transition-opacity {
+  opacity: 1;
+}
+
+/* Changer la couleur des icônes de catégories dans le thème clair */
+.theme-light div[class*="rounded-2xl"] .text-white {
+  color: #2C3E50 !important;
+}
+
+/* Conserver les couleurs d'animation */
+.theme-light .animate-spin-slow .text-yellow-500,
+.theme-light .animate-float-particle-1 ~ .text-yellow-500 {
+  color: #EAB308 !important;
+}
+
+.theme-light .animate-spin-slow .text-purple-500,
+.theme-light .animate-float-particle-2 ~ .text-purple-500 {
+  color: #A855F7 !important;
+}
+
+.theme-light .animate-spin-slow .text-green-500,
+.theme-light .animate-float-particle-3 ~ .text-green-500 {
+  color: #22C55E !important;
+}
+
+.theme-light .animate-spin-slow .text-red-500 {
+  color: #EF4444 !important;
+}
+
+.theme-light .animate-spin-slow .text-blue-500 {
+  color: #3B82F6 !important;
+}
+
+/* Conserver les styles pour les textes colorés */
+.theme-light h1.text-transparent {
+  color: transparent !important;
+}
+
+/* Conserver les animations et autres styles */
+.theme-light .group:hover .transform {
+  transform: scale(1.05);
+}
+
+.theme-light .group:hover .transition-opacity {
+  opacity: 1;
+}
+
+/* Rendre le fond de l'icône transparent dans le thème clair */
+.theme-light .bg-gray-900\/80 {
+  background-color: transparent !important;
+}
+
+/* Changer la couleur des icônes de catégories dans le thème clair */
+.theme-light .text-white,
+.theme-light .text-blue-500,
+.theme-light .text-yellow-500,
+.theme-light .text-purple-500,
+.theme-light .text-green-500,
+.theme-light .text-red-500 {
+  color: #2C3E50 !important;
+}
+
+/* Conserver les styles pour les textes colorés */
+.theme-light h1.text-transparent {
+  color: transparent !important;
+}
+
+/* Conserver les animations et autres styles */
+.theme-light .group:hover .transform {
+  transform: scale(1.05);
+}
+
+.theme-light .group:hover .transition-opacity {
+  opacity: 1;
+}
+
+/* Changer la couleur des icônes de catégories dans le thème clair */
+.theme-light div[class*="rounded-2xl"] .text-white {
+  color: #2C3E50 !important;
+}
+
+/* Conserver les couleurs d'animation */
+.theme-light .animate-spin-slow .text-yellow-500,
+.theme-light .animate-float-particle-1 ~ .text-yellow-500 {
+  color: #EAB308 !important;
+}
+
+.theme-light .animate-spin-slow .text-purple-500,
+.theme-light .animate-float-particle-2 ~ .text-purple-500 {
+  color: #A855F7 !important;
+}
+
+.theme-light .animate-spin-slow .text-green-500,
+.theme-light .animate-float-particle-3 ~ .text-green-500 {
+  color: #22C55E !important;
+}
+
+.theme-light .animate-spin-slow .text-red-500 {
+  color: #EF4444 !important;
+}
+
+.theme-light .animate-spin-slow .text-blue-500 {
+  color: #3B82F6 !important;
+}
+
+/* Conserver les styles pour les textes colorés */
+.theme-light h1.text-transparent {
+  color: transparent !important;
+}
+
+/* Conserver les animations et autres styles */
+.theme-light .group:hover .transform {
+  transform: scale(1.05);
+}
+
+.theme-light .group:hover .transition-opacity {
+  opacity: 1;
+}

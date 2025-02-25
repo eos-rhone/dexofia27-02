@@ -230,8 +230,8 @@ export function CategoryPage() {
               <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
               
               {/* Main category icon with rotation and scale animation */}
-              <div className="relative bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
-                <div className={`w-24 h-24 rounded-2xl ${colorClasses[0]} flex items-center justify-center`}>
+              <div className="relative dark:bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
+                <div className={`w-24 h-24 rounded-2xl flex items-center justify-center`}>
                   {(() => {
                     const IconComponent = iconMap[category.icon];
                     if (!IconComponent) {
