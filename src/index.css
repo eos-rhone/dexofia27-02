@@ -36,17 +36,33 @@ body {
 }
 
 .theme-light {
-  /* Couleurs principales avec contraste WCAG AA */
   --bg-primary: #ffffff;
-  --text-primary: #93A7C2;    /* Ratio 8.59:1 */
-  --text-secondary: #CCCCCC;  /* Ratio 4.48:1 */
-  --accent: #93A7C2;         /* Bleu accessible */
-
-  /* Couleurs supplémentaires */
+  --text-primary: #93A7C2;
+  --text-secondary: #CCCCCC;
+  --accent: #93A7C2;
   --card-bg: #f8f9fa;
   --hover-bg: #e9ecef;
   --border-color: #d1d5db;
   --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-pastel {
+  --bg-primary: rgb(241 194 240 / 50%);  /* Fond rose pastel */
+  --text-primary: #cbe5f2;  /* Nouveau texte principal bleu pastel */
+  --text-secondary: #f9d3fb;  /* Texte secondaire rose clair */
+  --accent: #FFB5E8;  /* Accent rose pastel */
+  --card-bg: rgb(241 194 240 / 50%);  /* Fond des cartes */
+  --hover-bg: rgb(245 52 212 / 25%);  /* Hover rose */
+  --border-color: #cafad8;  /* Bordure */
+  --shadow-color: rgba(202, 250, 216, 0.2);  /* Ombre assortie */
+  
+  /* Couleurs supplémentaires pour les catégories */
+  --category-1: #FFB5E8;  /* Rose pastel */
+  --category-2: #B5EAFF;  /* Bleu pastel */
+  --category-3: #B8F0B8;  /* Vert pastel */
+  --category-4: #FFE5B5;  /* Orange pastel */
+  --category-5: #E5B5FF;  /* Violet pastel */
+  --category-6: #B5FFE5;  /* Menthe pastel */
 }
 
 .theme-cyberpunk {
@@ -673,4 +689,74 @@ body {
 
 .theme-light .group:hover .transition-opacity {
   opacity: 1;
+}
+
+/* Styles spécifiques pour le thème pastel */
+.theme-pastel .text-gray-400 {
+  color: #f9d3fb !important;
+}
+
+.theme-pastel .text-blue-500,
+.theme-pastel .text-blue-500 span {
+  color: #cafad8 !important;
+}
+
+.theme-pastel .bg-gray-800,
+.theme-pastel .bg-gray-900,
+.theme-pastel [class*="bg-gray-800"],
+.theme-pastel [class*="bg-gray-900"],
+.theme-pastel .bg-gray-900\/80,
+.theme-pastel .bg-gray-900\/50,
+.theme-pastel .bg-black\/40 {
+  background-color: rgb(153 92 247 / 35%) !important;
+}
+
+/* Style pour la navbar */
+.theme-pastel nav {
+  background-color: rgb(153 92 247 / 35%) !important;
+  border-bottom: 1px solid #cafad8 !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Style pour les cartes */
+.theme-pastel .tool-card,
+.theme-pastel .category-card {
+  background-color: rgb(153 92 247 / 35%) !important;
+  transition: all 0.2s ease;
+}
+
+.theme-pastel .tool-card:hover,
+.theme-pastel .category-card:hover {
+  background-color: rgb(153 92 247 / 45%) !important;
+  transform: translateY(-2px);
+}
+
+.theme-pastel .text-white {
+  color: #cbe5f2 !important;
+}
+
+.theme-pastel .border,
+.theme-pastel .border-t,
+.theme-pastel .border-b,
+.theme-pastel .border-l,
+.theme-pastel .border-r,
+.theme-pastel [class*="border"] {
+  border-color: #cafad8 !important;
+}
+
+.theme-pastel .ring-1 {
+  --tw-ring-color: #cafad8 !important;
+}
+
+.theme-pastel .divide-y > * {
+  border-color: #cafad8 !important;
+}
+
+/* Focus et hover pour les bordures */
+.theme-pastel *:focus {
+  outline-color: #cafad8 !important;
+}
+
+.theme-pastel .hover\:border:hover {
+  border-color: #cafad8 !important;
 }

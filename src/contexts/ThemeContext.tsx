@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Theme = 'dark' | 'light' | 'cyberpunk' | 'forest' | 'aqua' | 'blood' | 'citrus';
+type Theme = 'dark' | 'light' | 'cyberpunk' | 'forest' | 'aqua' | 'blood' | 'citrus' | 'pastel';
 
 interface ThemeContextType {
   theme: Theme;
@@ -12,12 +12,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme');
-    return (savedTheme as Theme) || 'light';
+    return (savedTheme as Theme) || 'dark';
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('theme-light', 'theme-dark', 'theme-cyberpunk', 'theme-forest', 'theme-aqua', 'theme-blood', 'theme-citrus');
+    root.classList.remove('theme-light', 'theme-dark', 'theme-cyberpunk', 'theme-forest', 'theme-aqua', 'theme-blood', 'theme-citrus', 'theme-pastel');
     root.classList.add(`theme-${theme}`);
     
     // Gérer la classe dark de Tailwind
