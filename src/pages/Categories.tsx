@@ -49,7 +49,31 @@ import {
   ArrowUpRight,
   Beaker,
   Palette,
-  Star
+  CheckSquare,
+  ListTodo,
+  Star,
+  Coffee,
+  ShoppingCart,
+  DollarSign,
+  Cpu,
+  FileText,
+  Box,
+  Cloud,
+  Scissors,
+  Settings,
+  Speaker,
+  Clock,
+  PenTool,
+  Phone,
+  Eye,
+  PieChart,
+  MessageCircle,
+  Link,
+  Cog,
+  Printer,
+  Server,
+  Landmark,
+  Plane
 } from 'lucide-react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { getCategories, getTools } from '../lib/supabase';
@@ -119,7 +143,33 @@ const iconMap = {
   Users,
   AiBrain: Brain,
   Acoustic: Music,
-  Palette
+  Palette,
+  Coffee,
+  ShoppingCart,
+  DollarSign,
+  ListCheck: CheckSquare,
+  Cpu,
+  FileText,
+  Box,
+  Cloud,
+  Scissors,
+  Settings,
+  Speaker,
+  Clock,
+  PenTool,
+  Phone,
+  Eye,
+  PieChart,
+  MessageCircle,
+  Link,
+  Cog,
+  Printer,
+  Server,
+  Landmark,
+  Plane,
+  Star,
+  CheckSquare,
+  ListTodo
 };
 
 const colorClasses = [
@@ -321,3 +371,5 @@ export function Categories() {
     </div>
   );
 }
+
+export default Categories;

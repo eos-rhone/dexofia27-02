@@ -343,6 +343,34 @@ body {
   animation: float-particle 4s ease-in-out infinite 2s;
 }
 
+/* Animation de scintillement */
+@keyframes shimmer {
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+  pointer-events: none;
+}
+
 /* Button Styles */
 .btn {
   @apply px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2;
@@ -759,4 +787,27 @@ body {
 
 .theme-pastel .hover\:border:hover {
   border-color: #cafad8 !important;
+}
+
+/* Styles pour les formes géométriques du SpotlightEffect */
+.triangle {
+  position: relative;
+  transform-origin: 50% 100%;
+}
+
+#spotlight-container .absolute {
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+#spotlight-container .rounded-full,
+#spotlight-container .rounded-lg,
+#spotlight-container .triangle {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }

@@ -41,7 +41,7 @@ const calculatePopularityScore = (tool: Tool) => {
 // Composant optimisé pour le rendu des cartes du Top 10
 const TopToolCard = React.memo(({ tool, index }: { tool: Tool; index: number }) => {
   return (
-    <div className="bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 group">
+    <div className="bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 group animate-shimmer relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:-translate-x-full before:animate-[shimmer_2s_infinite] before:pointer-events-none">
       <div className="relative">
         <img
           src={tool.image_url}
@@ -385,3 +385,5 @@ export default function Rankings() {
     </div>
   );
 }
+
+export { Rankings };

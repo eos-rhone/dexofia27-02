@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Moon, Monitor, Zap, TreePine, Droplet, Sun } from 'lucide-react';
+import { Moon, Monitor, Zap, TreePine, Droplet, Sun, Heart } from 'lucide-react';
 import { Lemon } from './icons/Lemon';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemeOption {
   name: string;
-  value: 'light' | 'dark' | 'cyberpunk' | 'forest' | 'aqua' | 'blood' | 'citrus';
+  value: 'light' | 'dark' | 'cyberpunk' | 'forest' | 'aqua' | 'blood' | 'citrus' | 'pastel';
   icon: React.ReactNode;
   description: string;
 }
@@ -52,6 +52,12 @@ const themes: ThemeOption[] = [
     value: 'citrus',
     icon: <Lemon className="w-5 h-5 text-yellow-400" strokeWidth={1.5} />,
     description: 'Thème avec une belle couleur jaune'
+  },
+  {
+    name: 'Pastel',
+    value: 'pastel',
+    icon: <Heart className="w-5 h-5 text-pink-300" />,
+    description: 'Thème doux aux couleurs pastel'
   }
 ];
 

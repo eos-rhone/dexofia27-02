@@ -8,14 +8,34 @@
     
   2. Content
     - Popular AI tools across categories
-    - Verified and featured tools
+    - Featured tools
     - Realistic pricing and features
 */
 
--- Insert Categories
+BEGIN;
+
+-- Create a temporary table for our new data
+CREATE TEMP TABLE temp_ai_tools (
+    name text,
+    slug text,
+    description text,
+    website_url text,
+    category_id uuid,
+    pricing jsonb,
+    is_active boolean,
+    is_featured boolean
+);
+
+-- Disable triggers temporarily
+ALTER TABLE public.ai_tools DISABLE TRIGGER ALL;
+
+-- Delete all existing tools with CASCADE
+DELETE FROM public.ai_tools CASCADE;
+
+-- Insert Categories if they don't exist
 INSERT INTO categories (name, slug, description, icon) VALUES
 ('Assistants & Chatbots', 'assistants-chatbots', 'Agents conversationnels et assistants virtuels intelligents', 'MessageSquare'),
-('Génération d''images', 'generation-images', 'Créez des images uniques à partir de descriptions textuelles', 'Image'),
+('Génération d''Images', 'generation-images', 'Créez des images uniques à partir de descriptions textuelles', 'Image'),
 ('Création musicale', 'creation-musicale', 'Composez et générez de la musique avec l''IA', 'Music'),
 ('Analyse de données', 'analyse-donnees', 'Outils d''analyse et de visualisation de données', 'BarChart'),
 ('Productivité', 'productivite', 'Outils pour améliorer votre efficacité quotidienne', 'Zap'),
@@ -24,32 +44,50 @@ INSERT INTO categories (name, slug, description, icon) VALUES
 ('Recherche', 'recherche', 'Assistants de recherche et d''analyse scientifique', 'Search')
 ON CONFLICT (slug) DO NOTHING;
 
--- Insert AI Tools
-INSERT INTO ai_tools (name, slug, description, category_id, image_url, website_url, is_verified, is_featured, monthly_users) VALUES
-('ChatGPT', 'chatgpt', 'Assistant conversationnel avancé basé sur GPT-4', (SELECT id FROM categories WHERE slug = 'assistants-chatbots'), 'https://images.unsplash.com/photo-1677442136019-21780ecad995', 'https://chat.openai.com', true, true, 1000000),
-('Midjourney', 'midjourney', 'Génération d''images par IA de haute qualité', (SELECT id FROM categories WHERE slug = 'generation-images'), 'https://images.unsplash.com/photo-1519681393784-d120267933ba', 'https://www.midjourney.com', true, true, 500000),
-('DALL-E', 'dall-e', 'Création d''images à partir de descriptions textuelles par OpenAI', (SELECT id FROM categories WHERE slug = 'generation-images'), 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4', 'https://labs.openai.com', true, true, 400000),
-('Claude', 'claude', 'Assistant IA par Anthropic avec capacités avancées', (SELECT id FROM categories WHERE slug = 'assistants-chatbots'), 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485', 'https://claude.ai', true, false, 300000),
-('Stable Diffusion', 'stable-diffusion', 'Modèle open-source de génération d''images', (SELECT id FROM categories WHERE slug = 'generation-images'), 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46', 'https://stability.ai', true, false, 200000),
-('Mubert', 'mubert', 'Génération de musique par IA', (SELECT id FROM categories WHERE slug = 'creation-musicale'), 'https://images.unsplash.com/photo-1511379938547-c1f69419868d', 'https://mubert.com', true, false, 100000)
-ON CONFLICT (slug) DO NOTHING;
+-- Insert data into temp table
+INSERT INTO temp_ai_tools (name, slug, description, website_url, category_id, pricing, is_active, is_featured)
+SELECT 
+    d.name,
+    d.slug,
+    d.description,
+    d.website_url,
+    c.id,
+    d.pricing::jsonb,
+    true,
+    d.is_featured
+FROM (
+    VALUES 
+    ('ChatGPT', 'chatgpt', 'Assistant conversationnel avancé basé sur GPT-4', 'https://chat.openai.com', 'Assistants & Chatbots', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Plus", "price": 20}]', true),
+    ('Claude', 'claude', 'Assistant IA par Anthropic avec capacités avancées', 'https://claude.ai', 'Assistants & Chatbots', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 20}]', true),
+    ('Bard', 'bard', 'Assistant IA de Google avec intégration des services Google', 'https://bard.google.com', 'Assistants & Chatbots', '[{"plan_name": "Free", "price": 0}]', true),
+    ('Pi', 'pi', 'Assistant conversationnel empathique par Inflection AI', 'https://pi.ai', 'Assistants & Chatbots', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 15}]', false),
+    ('Character.ai', 'character-ai', 'Chatbots personnalisés avec différentes personnalités', 'https://character.ai', 'Assistants & Chatbots', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 10}]', false),
+    
+    ('Midjourney', 'midjourney', 'Génération d''images par IA de haute qualité', 'https://www.midjourney.com', 'Génération d''Images', '[{"plan_name": "Basic", "price": 10}, {"plan_name": "Standard", "price": 30}]', true),
+    ('DALL-E', 'dall-e', 'Création d''images à partir de descriptions textuelles par OpenAI', 'https://labs.openai.com', 'Génération d''Images', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Credits", "price": 15}]', true),
+    ('Stable Diffusion', 'stable-diffusion', 'Modèle open-source de génération d''images', 'https://stability.ai', 'Génération d''Images', '[{"plan_name": "Open Source", "price": 0}]', true),
+    ('Leonardo.ai', 'leonardo-ai', 'Plateforme de création d''images IA pour les professionnels', 'https://leonardo.ai', 'Génération d''Images', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 20}]', false),
+    ('Playground AI', 'playground-ai', 'Plateforme de génération d''images avec interface intuitive', 'https://playground.ai', 'Génération d''Images', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 15}]', false),
+    
+    ('Mubert', 'mubert', 'Génération de musique par IA', 'https://mubert.com', 'Création musicale', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 15}]', true),
+    ('Soundraw', 'soundraw', 'Création de musique royalty-free par IA', 'https://soundraw.io', 'Création musicale', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 20}]', false),
+    ('AIVA', 'aiva', 'Composition musicale assistée par IA', 'https://www.aiva.ai', 'Création musicale', '[{"plan_name": "Free", "price": 0}, {"plan_name": "Pro", "price": 15}]', false)
+) AS d(name, slug, description, website_url, category_name, pricing, is_featured)
+JOIN public.categories c ON c.name = d.category_name;
 
--- Insert Tool Features
-INSERT INTO tool_features (tool_id, name, description) 
-SELECT id, 'Chat en temps réel', 'Conversation naturelle avec l''IA' FROM ai_tools WHERE slug = 'chatgpt'
-UNION ALL
-SELECT id, 'Génération de code', 'Support pour plus de 40 langages de programmation' FROM ai_tools WHERE slug = 'chatgpt'
-UNION ALL
-SELECT id, 'Haute résolution', 'Images jusqu''à 1024x1024 pixels' FROM ai_tools WHERE slug = 'midjourney'
-UNION ALL
-SELECT id, 'Styles variés', 'Multiples styles artistiques disponibles' FROM ai_tools WHERE slug = 'midjourney';
+-- Delete existing tools that are in our temp table
+DELETE FROM public.ai_tools 
+WHERE slug IN (SELECT slug FROM temp_ai_tools);
 
--- Insert Tool Pricing
-INSERT INTO tool_pricing (tool_id, plan_name, price, billing_period, features)
-SELECT id, 'Gratuit', 0, 'monthly', ARRAY['Accès basique', 'Utilisation limitée'] FROM ai_tools WHERE slug = 'chatgpt'
-UNION ALL
-SELECT id, 'Plus', 20, 'monthly', ARRAY['Accès prioritaire', 'GPT-4', 'DALL-E'] FROM ai_tools WHERE slug = 'chatgpt'
-UNION ALL
-SELECT id, 'Basic', 10, 'monthly', ARRAY['200 images/mois', 'Résolution standard'] FROM ai_tools WHERE slug = 'midjourney'
-UNION ALL
-SELECT id, 'Standard', 30, 'monthly', ARRAY['Génération illimitée', 'Haute résolution'] FROM ai_tools WHERE slug = 'midjourney';
+-- Insert new data from temp table
+INSERT INTO public.ai_tools (name, slug, description, website_url, category_id, pricing, is_active, is_featured)
+SELECT name, slug, description, website_url, category_id, pricing, is_active, is_featured
+FROM temp_ai_tools;
+
+-- Re-enable triggers
+ALTER TABLE public.ai_tools ENABLE TRIGGER ALL;
+
+-- Drop temp table
+DROP TABLE temp_ai_tools;
+
+COMMIT;
