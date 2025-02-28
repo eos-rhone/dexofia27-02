@@ -29,7 +29,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-black/40 backdrop-blur-sm fixed w-full z-50 transition-all duration-300">
+    <nav className="flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-sm fixed w-full z-50 transition-all duration-300">
       <div className="flex items-center gap-4">
         <Link 
           to="/" 

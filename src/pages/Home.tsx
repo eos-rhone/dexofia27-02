@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Search, Brain, TrendingUp, Bot, Database, Star, ArrowRight } from 'lucide-react';
+import { Search, Brain, TrendingUp, Bot, Database, Star, ArrowRight, Zap, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getTools, getCategories } from '../lib/supabase';
+import GlowingShapes from '../components/GlowingShapes';
 
 export function Home() {
   const [searchValue, setSearchValue] = useState('');
@@ -71,24 +72,60 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
+      <GlowingShapes />
       <div className="max-w-7xl mx-auto px-6 pt-24 pb-16">
         <div className="flex justify-center mb-4 animate-fade-in">
-          <div className="bg-blue-500/10 px-6 py-3 rounded-full transform hover:scale-105 transition-all duration-300">
-            <div className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-blue-500 animate-pulse" />
-              <span className="text-blue-500">The Ultimate AI Finder</span>
+          <div className="bg-blue-500/10 px-6 py-3 rounded-full transform group hover:scale-105 transition-all duration-300">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
+              
+              <div className="relative flex items-center gap-2">
+                <div className="relative transform group-hover:scale-110 transition-transform duration-500">
+                  <Brain className="w-5 h-5 text-blue-500 animate-float" />
+                  
+                  <div className="absolute inset-0 animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Zap className="w-3 h-3 text-yellow-500 absolute -top-2 left-1/2 -translate-x-1/2 transform -rotate-12" />
+                    <Star className="w-3 h-3 text-purple-500 absolute -bottom-2 left-1/2 -translate-x-1/2 transform rotate-12" />
+                    <Sparkles className="w-3 h-3 text-green-500 absolute top-1/2 -right-2 -translate-y-1/2" />
+                    <Brain className="w-3 h-3 text-red-500 absolute top-1/2 -left-2 -translate-y-1/2" />
+                  </div>
+                </div>
+                <span className="text-blue-500 relative z-10">The Ultimate AI Finder</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <h1 className="text-center text-7xl font-bold mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-            Trouvez l'IA parfaite
-          </span>
+        <h1 className="text-center text-7xl font-bold mb-6 animate-fade-in group" style={{ animationDelay: '0.2s' }}>
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-blue-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
+            <div className="relative">
+              <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text group-hover:scale-105 transition-transform duration-500 inline-block">
+                Trouvez l'IA parfaite
+              </span>
+              <div className="absolute inset-0 animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Zap className="w-6 h-6 text-yellow-500 absolute -top-4 left-1/2 -translate-x-1/2 transform -rotate-12" />
+                <Star className="w-6 h-6 text-purple-500 absolute -bottom-4 left-1/2 -translate-x-1/2 transform rotate-12" />
+                <Sparkles className="w-6 h-6 text-green-500 absolute top-1/2 -right-4 -translate-y-1/2" />
+                <Brain className="w-6 h-6 text-red-500 absolute top-1/2 -left-4 -translate-y-1/2" />
+              </div>
+            </div>
+          </div>
           <br />
-          <span className="text-white">
-            pour vos besoins
-          </span>
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-blue-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
+            <div className="relative">
+              <span className="text-white group-hover:scale-105 transition-transform duration-500 inline-block">
+                pour vos besoins
+              </span>
+              <div className="absolute inset-0 animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Zap className="w-6 h-6 text-yellow-500 absolute -top-4 left-1/2 -translate-x-1/2 transform -rotate-12" />
+                <Star className="w-6 h-6 text-purple-500 absolute -bottom-4 left-1/2 -translate-x-1/2 transform rotate-12" />
+                <Sparkles className="w-6 h-6 text-green-500 absolute top-1/2 -right-4 -translate-y-1/2" />
+                <Brain className="w-6 h-6 text-red-500 absolute top-1/2 -left-4 -translate-y-1/2" />
+              </div>
+            </div>
+          </div>
         </h1>
 
         <p className="text-center text-gray-400 text-xl max-w-3xl mx-auto mb-12 leading-relaxed animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -209,3 +246,5 @@ export function Home() {
     </div>
   );
 }
+
+export default Home;
