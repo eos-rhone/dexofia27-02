@@ -109,7 +109,12 @@ export async function getCategories() {
 }
 
 // Fonction améliorée pour récupérer les outils avec recherche intelligente
-export const getTools = async ({ category, search, limit }: { category?: string; search?: string; limit?: number } = {}) => {
+export async function getTools(options: {
+  category?: string;
+  search?: string;
+  featured?: boolean;
+  limit?: number;
+} = {}) {
   try {
     let query = supabase
       .from('ai_tools')
@@ -119,16 +124,20 @@ export const getTools = async ({ category, search, limit }: { category?: string;
       `)
       .not('slug', 'is', null);
 
-    if (category) {
-      query = query.eq('categories.slug', category);
+    if (options.search) {
+      query = query.ilike('name', `%${options.search}%`);
     }
 
-    if (search) {
-      query = query.ilike('name', `%${search}%`);
+    if (options.category) {
+      query = query.eq('categories.slug', options.category);
     }
 
-    if (limit) {
-      query = query.limit(limit);
+    if (options.featured !== undefined) {
+      query = query.eq('featured', options.featured);
+    }
+
+    if (options.limit) {
+      query = query.limit(options.limit);
     }
 
     const { data, error } = await query;

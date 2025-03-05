@@ -79,15 +79,15 @@ export function Home() {
       setError(null);
       try {
         // Récupérer les outils populaires
-        const tools = await getTools();
+        const tools = await getTools({ featured: true });
 
-        // Trier les outils par nombre d'utilisateurs mensuels pour obtenir les plus populaires
+        // Trier les outils par nombre d'utilisateurs mensuels
         if (Array.isArray(tools)) {
           const sortedTools = [...tools]
             .filter(tool => tool && typeof tool === 'object')
             .sort((a, b) => (b.monthly_users || 0) - (a.monthly_users || 0));
           
-          setPopularTools(sortedTools.slice(0, 6)); // Prendre les 6 premiers outils
+          setPopularTools(sortedTools); // Prendre tous les outils marqués comme featured
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -303,15 +303,15 @@ export function Home() {
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-all duration-300 text-center"
+                className="bg-gray-900/80 p-6 rounded-xl border border-gray-800 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 text-center group"
               >
-                <div className={`rounded-lg p-3 ${stat.color} bg-gray-900/50 inline-block mb-4`}>
+                <div className={`rounded-lg p-3 ${stat.color} bg-gray-900/80 inline-block mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   <stat.icon className="w-8 h-8" />
                 </div>
-                <div className={`text-2xl font-bold ${stat.color} mb-2`}>
+                <div className={`text-2xl font-bold ${stat.color} mb-2 group-hover:scale-105 transition-transform duration-300`}>
                   {stat.value}
                 </div>
-                <div className="text-gray-400 text-sm">
+                <div className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-300">
                   {stat.label}
                 </div>
               </div>
