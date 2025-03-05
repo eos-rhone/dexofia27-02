@@ -1,62 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Icon } from '../components/Icon';
-import { 
-  Search, 
-  MessageSquare, 
-  Image, 
-  Music, 
-  FileText, 
-  Microscope, 
-  Zap, 
-  Layout, 
-  Cuboid, 
-  Mic2, 
-  GraduationCap, 
-  Folder,
-  Star, 
-  Bot, 
-  Shield, 
-  Heart, 
-  LineChart, 
-  Home, 
-  Gamepad, 
-  Beaker,
-  Scale, 
-  Languages, 
-  Car, 
-  Leaf, 
-  Shirt, 
-  Building2,
-  Users, 
-  Brain, 
-  Code, 
-  Video, 
-  Camera, 
-  Briefcase,
-  Database,
-  Headphones,
-  Radio,
-  Palette,
-  Building,
-  Factory,
-  Truck,
-  Film,
-  Mountain,
-  Waves,
-  Pencil,
-  Dumbbell,
-  Eye,
-  ArrowUpRight,
-  Rocket,
-  FlaskConical,
-  CircuitBoard,
-  Globe,
-  Glasses
-} from 'lucide-react';
+import { Search, Star, Users, Eye, MessageSquare, ArrowUpRight, MessageSquare as MessageIcon, Image, Music, FileSpreadsheet, Microscope, Zap, Layout, Cuboid as Cube, Mic2, GraduationCap, Bot, Shield, Heart, LineChart, Home, Gamepad, FlaskRound as Flask, Scale, Video, FileText, BarChart, Code, Palette, Newspaper, Brain, Sparkles, Wand2, PenTool, Briefcase, Lightbulb, Rocket, Languages, Car, Leaf, Shirt, Building2, Glasses, TrendingUp, Plane, Folder, Headphones, Database, DollarSign } from 'lucide-react';
 import { getTools, getCategories } from '../lib/supabase';
-import { AiBrain } from '../components/icons/AiBrain';
-import { Acoustic } from '../components/icons/Acoustic';
 
 interface Tool {
   id: string;
@@ -88,67 +33,59 @@ interface Category {
   icon: string;
 }
 
-const iconMap = {
-  MessageSquare,
-  Image,
-  Music,
-  FileSpreadsheet: FileText,
-  Microscope,
-  Zap,
-  Layout,
-  Cube: Cuboid,
-  Mic2,
-  GraduationCap,
-  Bot,
-  Shield,
-  Heart,
-  LineChart,
-  Home,
-  Gamepad,
-  Flask: Beaker,
-  Scale,
-  Languages,
-  Car,
-  Leaf,
-  Shirt,
-  Building2,
-  Users,
-  Brain,
-  Code,
-  Video,
-  Camera,
-  Briefcase,
-  Database,
-  Headphones,
-  Radio,
-  AiBrain,
-  Acoustic,
-  Palette,
-  Building,
-  Factory,
-  Truck,
-  Film,
-  Mountain,
-  Waves,
-  Pencil,
-  Dumbbell,
-  Eye,
-  Rocket,
-  FlaskConical,
-  CircuitBoard,
-  Globe,
-  Glasses,
-  Folder
+const iconMap: { [key: string]: React.ReactNode } = {
+  // Catégories principales
+  messagesquare: <MessageSquare className="w-16 h-16" />,
+  image: <Image className="w-16 h-16" />,
+  music: <Music className="w-16 h-16" />,
+  barchart: <BarChart className="w-16 h-16" />,
+  mic2: <Mic2 className="w-16 h-16" />,
+  trendingup: <TrendingUp className="w-16 h-16" />,
+  graduationcap: <GraduationCap className="w-16 h-16" />,
+  video: <Video className="w-16 h-16" />,
+  filetext: <FileText className="w-16 h-16" />,
+  filespreadsheet: <FileSpreadsheet className="w-16 h-16" />,
+  
+  // Nouvelles catégories
+  bot: <Bot className="w-16 h-16" />,
+  shield: <Shield className="w-16 h-16" />,
+  heart: <Heart className="w-16 h-16" />,
+  linechart: <LineChart className="w-16 h-16" />,
+  home: <Home className="w-16 h-16" />,
+  gamepad: <Gamepad className="w-16 h-16" />,
+  flask: <Flask className="w-16 h-16" />,
+  scale: <Scale className="w-16 h-16" />,
+  languages: <Languages className="w-16 h-16" />,
+  car: <Car className="w-16 h-16" />,
+  leaf: <Leaf className="w-16 h-16" />,
+  shirt: <Shirt className="w-16 h-16" />,
+  building2: <Building2 className="w-16 h-16" />,
+  users: <Users className="w-16 h-16" />,
+  glasses: <Glasses className="w-16 h-16" />,
+  folder: <Folder className="w-16 h-16" />,
+  plane: <Plane className="w-16 h-16" />,
+  cube: <Cube className="w-16 h-16" />,
+  headphones: <Headphones className="w-16 h-16" />,
+  code: <Code className="w-16 h-16" />,
+  database: <Database className="w-16 h-16" />,
+  zap: <Zap className="w-16 h-16" />,
+  briefcase: <Briefcase className="w-16 h-16" />,
+  dollarsign: <DollarSign className="w-16 h-16" />,
+  search: <Search className="w-16 h-16" />,
+  palette: <Palette className="w-16 h-16" />,
+  newspaper: <Newspaper className="w-16 h-16" />,
+  brain: <Brain className="w-16 h-16" />,
+  sparkles: <Sparkles className="w-16 h-16" />,
+  wand2: <Wand2 className="w-16 h-16" />,
+  pentool: <PenTool className="w-16 h-16" />,
+  lightbulb: <Lightbulb className="w-16 h-16" />,
+  rocket: <Rocket className="w-16 h-16" />,
+  microscope: <Microscope className="w-16 h-16" />,
+  layout: <Layout className="w-16 h-16" />,
+  star: <Star className="w-16 h-16" />,
+  eye: <Eye className="w-16 h-16" />,
+  arrowupright: <ArrowUpRight className="w-16 h-16" />
 };
-
-const colorClasses = [
-  'bg-blue-500',
-  'bg-purple-500',
-  'bg-green-500',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-indigo-500',
-];
 
 export function CategoryPage() {
   const { slug } = useParams();
@@ -164,7 +101,6 @@ export function CategoryPage() {
         // Charger la catégorie
         const categoriesData = await getCategories();
         const currentCategory = categoriesData.find(cat => cat.slug === slug);
-        console.log('Catégorie chargée:', currentCategory);
         setCategory(currentCategory || null);
 
         // Charger les outils de la catégorie
@@ -172,7 +108,6 @@ export function CategoryPage() {
           category: slug,
           search: searchQuery
         });
-        console.log('Outils chargés:', toolsData);
         setTools(toolsData);
       } catch (error) {
         console.error('Error loading category data:', error);
@@ -183,13 +118,6 @@ export function CategoryPage() {
 
     loadData();
   }, [slug, searchQuery]);
-
-  // Debug: afficher l'état actuel
-  console.log('État actuel:', {
-    category,
-    iconComponent: category ? iconMap[category.icon] : null,
-    availableIcons: Object.keys(iconMap)
-  });
 
   const getBadges = (tool: Tool) => {
     const badges = [];
@@ -230,16 +158,9 @@ export function CategoryPage() {
               <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
               
               {/* Main category icon with rotation and scale animation */}
-              <div className="relative dark:bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
-                <div className={`w-24 h-24 rounded-2xl flex items-center justify-center`}>
-                  {(() => {
-                    const IconComponent = iconMap[category.icon];
-                    if (!IconComponent) {
-                      console.warn(`Icône manquante pour ${category.name}: ${category.icon}`);
-                      return <Icon icon={Folder} size={48} className="text-white" />;
-                    }
-                    return <Icon icon={IconComponent} size={48} className="text-white" />;
-                  })()}
+              <div className="relative bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
+                <div className="text-blue-500 animate-float">
+                  {iconMap[category.icon]}
                 </div>
                 
                 {/* Orbiting elements */}

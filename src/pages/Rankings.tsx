@@ -29,7 +29,6 @@ interface Category {
   slug: string;
 }
 
-// Score de popularité basé sur plusieurs métriques
 const calculatePopularityScore = (tool: Tool) => {
   const monthlyUsersScore = Math.log10(tool.monthly_users + 1) / 6;
   const viewsScore = Math.log10(tool.total_views + 1) / 6;
@@ -38,46 +37,94 @@ const calculatePopularityScore = (tool: Tool) => {
   return monthlyUsersScore * 0.5 + viewsScore * 0.3 + reviewScore * 0.2;
 };
 
-// Composant optimisé pour le rendu des cartes du Top 10
 const TopToolCard = React.memo(({ tool, index }: { tool: Tool; index: number }) => {
   return (
-    <div className="bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 group animate-shimmer relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:-translate-x-full before:animate-[shimmer_2s_infinite] before:pointer-events-none">
-      <div className="relative">
-        <img
-          src={tool.image_url}
-          alt={tool.name}
-          className="w-full h-32 object-cover transform group-hover:scale-110 transition-transform duration-700"
-          loading="lazy"
-        />
-        <div className="absolute top-2 left-2 px-2 py-0.5 bg-yellow-500 text-black text-sm font-bold rounded-full flex items-center gap-1">
-          <Crown className="w-3 h-3" />
-          #{index + 1}
-        </div>
-      </div>
-      <div className="p-3">
-        <h3 className="text-sm font-semibold mb-1 truncate group-hover:text-blue-500 transition-colors">
-          {tool.name}
-        </h3>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Star className="w-3 h-3 text-yellow-500" />
-            <span className="text-xs font-medium">{tool.average_rating.toFixed(1)}</span>
+    <>
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+
+        .magic-card {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .magic-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 200%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(78, 169, 255, 0.1) 45%,
+            rgba(78, 169, 255, 0.2) 50%,
+            rgba(78, 169, 255, 0.1) 55%,
+            transparent 100%
+          );
+          transform: translateX(-100%);
+          animation: shimmer 4s infinite linear;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .magic-card:hover::before {
+          animation: shimmer 2s infinite linear;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(78, 169, 255, 0.2) 45%,
+            rgba(78, 169, 255, 0.3) 50%,
+            rgba(78, 169, 255, 0.2) 55%,
+            transparent 100%
+          );
+        }
+      `}</style>
+      <div className="magic-card bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 group">
+        <div className="relative">
+          <img
+            src={tool.image_url}
+            alt={tool.name}
+            className="w-full h-32 object-cover transform group-hover:scale-110 transition-transform duration-700"
+            loading="lazy"
+          />
+          <div className="absolute top-2 left-2 px-2 py-0.5 bg-yellow-500 text-black text-sm font-bold rounded-full flex items-center gap-1">
+            <Crown className="w-3 h-3" />
+            #{index + 1}
           </div>
-          <a
-            href={tool.website_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1 bg-blue-500/10 rounded text-blue-500 hover:bg-blue-500 hover:text-white transition-colors group/btn"
-          >
-            <ArrowUpRight className="w-4 h-4 group-hover/btn:rotate-45 transition-transform" />
-          </a>
+        </div>
+        <div className="p-3">
+          <h3 className="text-sm font-semibold mb-1 truncate group-hover:text-blue-500 transition-colors">
+            {tool.name}
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-yellow-500" />
+              <span className="text-xs font-medium">{tool.average_rating.toFixed(1)}</span>
+            </div>
+            <a
+              href={tool.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 bg-blue-500/10 rounded text-blue-500 hover:bg-blue-500 hover:text-white transition-colors group/btn"
+            >
+              <ArrowUpRight className="w-4 h-4 group-hover/btn:rotate-45 transition-transform" />
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 });
 
-// Composant optimisé pour le rendu des cartes de la liste complète
 const ToolListCard = React.memo(({ tool, index, formatNumber, formatPrice, getBadges }: { 
   tool: Tool; 
   index: number;
@@ -354,10 +401,63 @@ export default function Rankings() {
             </span>
           </h2>
 
-          <div className="grid grid-cols-5 gap-4">
-            {top10Tools.map((tool, index) => (
-              <TopToolCard key={tool.id} tool={tool} index={index} />
-            ))}
+          <style>{`
+            @keyframes shimmer {
+              0% {
+                transform: translateX(-100%);
+              }
+              100% {
+                transform: translateX(100%);
+              }
+            }
+
+            .magic-grid {
+              position: relative;
+              overflow: hidden;
+              padding: 2px;
+              border-radius: 1rem;
+            }
+
+            .magic-grid::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 200%;
+              height: 100%;
+              background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(78, 169, 255, 0.1) 45%,
+                rgba(78, 169, 255, 0.2) 50%,
+                rgba(78, 169, 255, 0.1) 55%,
+                transparent 100%
+              );
+              transform: translateX(-100%);
+              animation: shimmer 6s infinite linear;
+              pointer-events: none;
+              z-index: 1;
+            }
+
+            .magic-grid:hover::before {
+              animation: shimmer 3s infinite linear;
+              background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(78, 169, 255, 0.2) 45%,
+                rgba(78, 169, 255, 0.3) 50%,
+                rgba(78, 169, 255, 0.2) 55%,
+                transparent 100%
+              );
+            }
+          `}</style>
+
+          <div className="magic-grid bg-gray-900/30 p-6 rounded-xl">
+            <div className="grid grid-cols-5 gap-4">
+              {top10Tools.map((tool, index) => (
+                <TopToolCard key={tool.id} tool={tool} index={index} />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -385,5 +485,3 @@ export default function Rankings() {
     </div>
   );
 }
-
-export { Rankings };

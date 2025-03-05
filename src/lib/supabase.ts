@@ -9,6 +9,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Les variables d\'environnement Supabase sont manquantes. Assurez-vous d\'avoir configuré VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
 }
 
+console.log('Initialisation de Supabase avec URL:', supabaseUrl);
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -27,6 +29,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     params: {
       eventsPerSecond: 10
     }
+  }
+});
+
+// Vérifier la connexion
+supabase.from('ai_tools').select('count', { count: 'exact', head: true }).then(({ count, error }) => {
+  if (error) {
+    console.error('Erreur de connexion Supabase:', error);
+  } else {
+    console.log('Connexion Supabase OK, nombre d\'outils:', count);
   }
 });
 
@@ -56,124 +67,83 @@ const withRetry = async <T>(
 // Fonction pour récupérer les catégories avec retry
 export async function getCategories() {
   try {
-    const { data, error } = await withRetry(async () => 
-      await supabase
-        .from('categories')
-        .select('*')
-        .order('name')
-    );
-    
-    if (error) {
-      console.error('Erreur Supabase:', error.message);
-      return [];
-    }
+    // D'abord, obtenir les catégories
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        icon
+      `)
+      .order('name');
 
-    return data || [];
+    if (categoriesError) throw categoriesError;
+
+    // Ensuite, obtenir le nombre d'outils pour chaque catégorie
+    const { data: toolCounts, error: toolCountsError } = await supabase
+      .from('ai_tools')
+      .select('category_id, id')
+      .not('category_id', 'is', null);
+
+    if (toolCountsError) throw toolCountsError;
+
+    // Calculer le nombre d'outils par catégorie
+    const toolCountMap = toolCounts.reduce((acc, tool) => {
+      acc[tool.category_id] = (acc[tool.category_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Combiner les résultats
+    const categoriesWithCounts = categories.map(category => ({
+      ...category,
+      tool_count: toolCountMap[category.id] || 0
+    }));
+
+    return categoriesWithCounts;
   } catch (error) {
-    console.error('Erreur lors de la récupération des catégories:', error);
-    return [];
+    console.error('Error:', error);
+    throw error;
   }
 }
 
 // Fonction améliorée pour récupérer les outils avec recherche intelligente
-export async function getTools(options: {
-  category?: string;
-  search?: string;
-  limit?: number;
-  featured?: boolean;
-} = {}) {
+export const getTools = async ({ category, search, limit }: { category?: string; search?: string; limit?: number } = {}) => {
   try {
     let query = supabase
       .from('ai_tools')
       .select(`
         *,
-        category:categories(
-          id,
-          name,
-          slug,
-          icon
-        )
-      `);
+        category:categories!inner(*)
+      `)
+      .not('slug', 'is', null);
 
-    // Si une catégorie est spécifiée, filtrer par cette catégorie
-    if (options.category) {
-      query = query.eq('categories.slug', options.category);
+    if (category) {
+      query = query.eq('categories.slug', category);
     }
 
-    // Si une recherche est spécifiée
-    if (options.search) {
-      // Analyser l'intention de recherche
-      const searchIntent = parseSearchIntent(options.search);
-      
-      // Construire la requête de recherche
-      const searchConditions = [];
-      
-      // Ajouter les conditions pour les mots-clés directs
-      if (searchIntent.keywords.length > 0) {
-        searchIntent.keywords.forEach(keyword => {
-          searchConditions.push(`name.ilike.%${keyword}%`);
-          searchConditions.push(`description.ilike.%${keyword}%`);
-        });
-      }
-      
-      // Si nous avons un sujet, ajouter des conditions spécifiques
-      if (searchIntent.subject) {
-        searchConditions.push(`description.ilike.%${searchIntent.subject}%`);
-      }
-      
-      // Si nous avons une action, ajouter des conditions spécifiques
-      if (searchIntent.action) {
-        searchConditions.push(`description.ilike.%${searchIntent.action}%`);
-      }
-      
-      // Si nous avons des conditions de recherche, les appliquer
-      if (searchConditions.length > 0) {
-        query = query.or(searchConditions.join(','));
-      }
+    if (search) {
+      query = query.ilike('name', `%${search}%`);
     }
 
-    if (options.featured) {
-      query = query.eq('is_featured', true);
+    if (limit) {
+      query = query.limit(limit);
     }
 
-    if (options.limit) {
-      query = query.limit(options.limit);
-    }
+    const { data, error } = await query;
 
-    // Exécuter la requête avec retry
-    const { data, error } = await withRetry(async () => await query);
-    
     if (error) {
-      console.error('Erreur Supabase:', error.message);
+      console.error('Erreur lors de la récupération des outils:', error);
       return [];
     }
 
-    // Filtrer les résultats pour s'assurer que seuls les outils de la catégorie spécifiée sont retournés
-    let filteredData = data;
-    if (options.category) {
-      filteredData = data.filter(tool => 
-        tool.category?.slug === options.category
-      );
-    }
-
-    // Si une recherche est effectuée, trier les résultats par pertinence
-    if (options.search && filteredData) {
-      const searchIntent = parseSearchIntent(options.search);
-      return filteredData
-        .map(tool => ({
-          ...tool,
-          relevanceScore: calculateRelevanceScore(tool, searchIntent)
-        }))
-        .sort((a, b) => b.relevanceScore - a.relevanceScore)
-        .filter(tool => tool.relevanceScore > 0); // Ne retourner que les résultats pertinents
-    }
-
-    return filteredData || [];
+    return data || [];
   } catch (error) {
     console.error('Erreur lors de la récupération des outils:', error);
     return [];
   }
-}
+};
 
 // Fonction pour récupérer les détails d'un outil avec retry
 export async function getToolDetails(slug: string) {
@@ -183,8 +153,7 @@ export async function getToolDetails(slug: string) {
         .from('ai_tools')
         .select(`
           *,
-          category:categories(*),
-          features:tool_features(*),
+          category:categories!ai_tools_category_id_fkey(*),
           pricing:tool_pricing(*),
           reviews:reviews(*)
         `)
@@ -193,13 +162,13 @@ export async function getToolDetails(slug: string) {
     );
     
     if (error) {
-      console.error('Erreur Supabase:', error.message);
+      console.error('Supabase error:', error.message);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur lors de la récupération des détails de l\'outil:', error);
+    console.error('Error in getToolDetails:', error);
     return null;
   }
 }
@@ -221,81 +190,210 @@ export async function incrementToolViews(toolId: string) {
   }
 }
 
-// Fonction pour soumettre un avis avec retry
+// Fonction pour soumettre un avis
 export async function submitReview(toolId: string, rating: number, comment: string) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('L\'utilisateur doit être authentifié pour soumettre un avis');
-    }
-
     const { error } = await withRetry(async () => 
       await supabase
         .from('reviews')
-        .insert({
-          tool_id: toolId,
-          user_id: user.id,
-          rating,
-          comment
-        })
+        .insert([
+          {
+            tool_id: toolId,
+            rating,
+            comment
+          }
+        ])
     );
     
     if (error) {
       console.error('Erreur Supabase:', error.message);
-      throw error;
+      return false;
     }
+    
+    return true;
   } catch (error) {
     console.error('Erreur lors de la soumission de l\'avis:', error);
-    throw error;
+    return false;
   }
 }
 
 // Fonction pour mettre à jour l'icône d'une catégorie
-export const updateCategoryIcon = async (categoryName: string, iconName: string) => {
-  return await withRetry(async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .update({ icon: iconName })
-      .eq('name', categoryName);
-
+export async function updateCategoryIcon(categoryId: string, iconPath: string) {
+  try {
+    const { error } = await withRetry(async () => 
+      await supabase
+        .from('categories')
+        .update({ icon: iconPath })
+        .eq('id', categoryId)
+    );
+    
     if (error) {
-      throw error;
+      console.error('Erreur Supabase:', error.message);
+      return false;
     }
-
-    return data;
-  });
-};
-
-// Fonction pour mettre à jour toutes les icônes des catégories
-export const updateAllCategoryIcons = async () => {
-  const categoryIcons = {
-    'Acoustique': 'Headphones',
-    'Analyse de données': 'LineChart',
-    'Archéologie': 'Microscope',
-    'Astronomie & Espace': 'Rocket',
-    'Biotechnologie': 'Flask',
-    'Blockchain & Web3': 'CircuitBoard',
-    'Business & Marketing': 'LineChart',
-    'Énergie & Climat': 'Leaf',
-    'Géologie': 'Mountain',
-    'Impression 3D': 'Cube',
-    'Industrie 4.0': 'Factory',
-    'Logistique': 'Truck',
-    'Médias & Divertissement': 'Film',
-    'Musées & Patrimoine': 'Building',
-    'Océanographie': 'Waves',
-    'Recherche': 'Search',
-    'Rédaction & Contenu': 'PenNib',
-    'Sport & Fitness': 'Dumbbell'
-  };
-
-  for (const [categoryName, iconName] of Object.entries(categoryIcons)) {
-    try {
-      await updateCategoryIcon(categoryName, iconName);
-      console.log(`Mise à jour réussie pour ${categoryName} avec l'icône ${iconName}`);
-    } catch (error) {
-      console.error(`Erreur lors de la mise à jour de ${categoryName}:`, error);
-    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'icône:', error);
+    return false;
   }
-};
+}
+
+// Fonction pour catégoriser automatiquement les outils
+export async function categorizeTools() {
+  try {
+    console.log('Début de la catégorisation...');
+    
+    // Récupérer tous les outils
+    const { data: tools, error: toolsError } = await supabase
+      .from('ai_tools')
+      .select('id, name, description, category_id');
+
+    if (toolsError) {
+      console.error('Erreur lors de la récupération des outils:', toolsError);
+      return false;
+    }
+
+    // Récupérer toutes les catégories
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
+      .select('id, name, keywords');
+
+    if (categoriesError) {
+      console.error('Erreur lors de la récupération des catégories:', categoriesError);
+      return false;
+    }
+
+    let updateCount = 0;
+    
+    // Pour chaque outil
+    for (const tool of tools || []) {
+      if (tool.category_id) continue; // Ignorer les outils déjà catégorisés
+
+      const toolText = `${tool.name} ${tool.description}`.toLowerCase();
+      let bestCategoryId = null;
+      let bestScore = 0;
+
+      // Trouver la meilleure catégorie
+      for (const category of categories) {
+        const keywords = category.keywords?.split(',') || [category.name];
+        let score = 0;
+
+        for (const keyword of keywords) {
+          if (toolText.includes(keyword.toLowerCase().trim())) {
+            score += 1;
+          }
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestCategoryId = category.id;
+        }
+      }
+
+      // Mettre à jour si une catégorie a été trouvée
+      if (bestCategoryId) {
+        const { error: updateError } = await supabase
+          .from('ai_tools')
+          .update({ category_id: bestCategoryId })
+          .eq('id', tool.id);
+
+        if (!updateError) {
+          updateCount++;
+          console.log(`Outil ${tool.name} catégorisé avec succès`);
+        }
+      }
+    }
+
+    console.log(`Catégorisation terminée. ${updateCount} outils mis à jour.`);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la catégorisation:', error);
+    return false;
+  }
+}
+
+// Fonction pour récupérer les statistiques de la page d'accueil
+export async function getHomeStats() {
+  try {
+    // Récupérer le nombre d'outils
+    const { count: toolCount } = await supabase
+      .from('ai_tools')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    // Récupérer le nombre de catégories
+    const { count: categoryCount } = await supabase
+      .from('categories')
+      .select('*', { count: 'exact', head: true });
+
+    return {
+      toolCount: toolCount || 0,
+      categoryCount: categoryCount || 0,
+      monthlyUsers: 1000, // Valeur temporaire
+      averageRating: 4.5  // Valeur temporaire
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error);
+    return {
+      toolCount: 0,
+      categoryCount: 0,
+      monthlyUsers: 0,
+      averageRating: 0
+    };
+  }
+}
+
+// Fonction pour mettre à jour les icônes manquantes
+export async function fixMissingIcons() {
+  try {
+    // 1. Récupérer toutes les catégories
+    const { data: categories, error: fetchError } = await supabase
+      .from('categories')
+      .select('id, name, icon');
+
+    if (fetchError) {
+      console.error('Erreur lors de la récupération des catégories:', fetchError);
+      return false;
+    }
+
+    // 2. Filtrer les catégories sans icône ou avec une ancienne icône (chemin de fichier)
+    const categoriesToUpdate = categories.filter(cat => !cat.icon || cat.icon.includes('/'));
+
+    // 3. Mettre à jour chaque catégorie
+    for (const category of categoriesToUpdate) {
+      let iconName = 'folder'; // Icône par défaut
+      
+      // Déterminer l'icône en fonction du nom de la catégorie
+      const name = category.name.toLowerCase();
+      if (name.includes('acoustique')) iconName = 'acoustic';
+      else if (name.includes('aviation')) iconName = 'plane';
+      else if (name.includes('audio')) iconName = 'music';
+      else if (name.includes('vidéo')) iconName = 'video';
+      else if (name.includes('image')) iconName = 'image';
+      else if (name.includes('texte')) iconName = 'filetext';
+      else if (name.includes('code')) iconName = 'code';
+      else if (name.includes('données')) iconName = 'database';
+      else if (name.includes('3d')) iconName = 'box';
+      else if (name.includes('musique')) iconName = 'music';
+      else if (name.includes('productivité')) iconName = 'listcheck';
+      else if (name.includes('marketing')) iconName = 'megaphone';
+      else if (name.includes('business')) iconName = 'briefcase';
+      else if (name.includes('éducation')) iconName = 'graduationcap';
+      else if (name.includes('santé')) iconName = 'heart';
+      else if (name.includes('finance')) iconName = 'dollarsign';
+      else if (name.includes('jeux')) iconName = 'gamepad';
+      else if (name.includes('social')) iconName = 'users';
+      else if (name.includes('recherche')) iconName = 'search';
+      else if (name.includes('intelligence')) iconName = 'aibrain';
+
+      // Mettre à jour l'icône
+      await updateCategoryIcon(category.id, iconName);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des icônes:', error);
+    return false;
+  }
+}

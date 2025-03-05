@@ -1,13 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Search, Brain, TrendingUp, Bot, Database, Star, ArrowRight, Zap, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getTools, getCategories } from '../lib/supabase';
-import GlowingShapes from '../components/GlowingShapes';
+import { getTools, getCategories, getHomeStats } from '../lib/supabase';
+import { AIQuickView } from '../components/AIQuickView';
+import { supabase } from '../lib/supabase';
 
 export function Home() {
   const [searchValue, setSearchValue] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [popularTools, setPopularTools] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     toolCount: 0,
     categoryCount: 0,
@@ -16,34 +20,84 @@ export function Home() {
   });
   const navigate = useNavigate();
 
-  // Charger les statistiques au montage du composant
+  // Charger les statistiques et configurer les souscriptions realtime
   useEffect(() => {
+    // Fonction pour charger les stats
     async function loadStats() {
       try {
-        // Récupérer tous les outils et catégories
-        const [tools, categories] = await Promise.all([
-          getTools(),
-          getCategories()
-        ]);
-
-        // Calculer les statistiques
-        const totalTools = tools.length;
-        const totalCategories = categories.length;
-        const totalMonthlyUsers = tools.reduce((sum, tool) => sum + (tool.monthly_users || 0), 0);
-        const avgRating = tools.reduce((sum, tool) => sum + (tool.average_rating || 0), 0) / totalTools;
-
-        setStats({
-          toolCount: totalTools,
-          categoryCount: totalCategories,
-          monthlyUsers: totalMonthlyUsers,
-          averageRating: avgRating
-        });
+        const stats = await getHomeStats();
+        setStats(stats);
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error);
       }
     }
 
+    // Charger les stats initiales
     loadStats();
+
+    // Souscrire aux changements des outils
+    const toolsSubscription = supabase
+      .channel('ai_tools_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'ai_tools' 
+        }, 
+        () => {
+          loadStats(); // Recharger les stats quand un outil est modifié
+        }
+      )
+      .subscribe();
+
+    // Souscrire aux changements des catégories
+    const categoriesSubscription = supabase
+      .channel('categories_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'categories' 
+        }, 
+        () => {
+          loadStats(); // Recharger les stats quand une catégorie est modifiée
+        }
+      )
+      .subscribe();
+
+    // Nettoyer les souscriptions
+    return () => {
+      toolsSubscription.unsubscribe();
+      categoriesSubscription.unsubscribe();
+    };
+  }, []);
+
+  // Charger les outils populaires au montage du composant
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Récupérer les outils populaires
+        const tools = await getTools();
+
+        // Trier les outils par nombre d'utilisateurs mensuels pour obtenir les plus populaires
+        if (Array.isArray(tools)) {
+          const sortedTools = [...tools]
+            .filter(tool => tool && typeof tool === 'object')
+            .sort((a, b) => (b.monthly_users || 0) - (a.monthly_users || 0));
+          
+          setPopularTools(sortedTools.slice(0, 6)); // Prendre les 6 premiers outils
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        setError('Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -59,6 +113,7 @@ export function Home() {
       }
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
+      setError('Erreur lors de la recherche. Veuillez réessayer plus tard.');
     } finally {
       setIsSearching(false);
     }
@@ -72,7 +127,7 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
-      <GlowingShapes />
+      {/* <GlowingShapes /> */}
       <div className="max-w-7xl mx-auto px-6 pt-24 pb-16">
         <div className="flex justify-center mb-4 animate-fade-in">
           <div className="bg-blue-500/10 px-6 py-3 rounded-full transform group hover:scale-105 transition-all duration-300">
@@ -189,7 +244,7 @@ export function Home() {
             <Link
               key={feature.title}
               to={feature.path}
-              className="bg-black/40 rounded-xl p-6 border border-gray-800 hover:border-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group animate-fade-in"
+              className="bg-black/40 rounded-xl p-6 border border-gray-800 hover:border-blue-500/50 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group animate-fade-in"
               style={{ animationDelay: `${0.2 * index}s` }}
             >
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -221,28 +276,131 @@ export function Home() {
 
           <div className="grid grid-cols-4 gap-6">
             {[
-              { icon: Database, value: stats.toolCount.toString(), label: 'Outils IA' },
-              { icon: Brain, value: stats.categoryCount.toString(), label: 'Catégories' },
-              { icon: TrendingUp, value: `${Math.floor(stats.monthlyUsers / 1000)}K+`, label: 'Utilisateurs/mois' },
-              { icon: Star, value: stats.averageRating.toFixed(1), label: 'Note moyenne' }
+              { 
+                icon: Database, 
+                value: stats?.toolCount || 0, 
+                label: 'Outils IA',
+                color: 'text-blue-500'
+              },
+              { 
+                icon: Brain, 
+                value: stats?.categoryCount || 0, 
+                label: 'Catégories',
+                color: 'text-purple-500'
+              },
+              { 
+                icon: TrendingUp, 
+                value: ((stats?.monthlyUsers || 0) / 1000).toFixed(1) + 'K+',
+                label: 'Utilisateurs/mois',
+                color: 'text-pink-500'
+              },
+              { 
+                icon: Star, 
+                value: (stats?.averageRating || 0).toFixed(1),
+                label: 'Note moyenne',
+                color: 'text-green-500'
+              }
             ].map((stat, index) => (
-              <div 
+              <div
                 key={stat.label}
-                className="bg-black/40 rounded-xl p-6 border border-gray-800 hover:border-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group animate-fade-in"
-                style={{ animationDelay: `${0.2 * index}s` }}
+                className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-all duration-300 text-center"
               >
-                <div className="flex justify-center mb-4">
-                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <stat.icon className="w-6 h-6 text-blue-500" />
-                  </div>
+                <div className={`rounded-lg p-3 ${stat.color} bg-gray-900/50 inline-block mb-4`}>
+                  <stat.icon className="w-8 h-8" />
                 </div>
-                <div className="text-4xl font-bold text-blue-500 text-center mb-2">{stat.value}</div>
-                <div className="text-gray-400 text-center">{stat.label}</div>
+                <div className={`text-2xl font-bold ${stat.color} mb-2`}>
+                  {stat.value}
+                </div>
+                <div className="text-gray-400 text-sm">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold mb-8 text-blue-500">Outils populaires</h2>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-500 p-4 bg-red-500/10 rounded-lg">
+              {error}
+            </div>
+          ) : popularTools.length === 0 ? (
+            <div className="text-center text-gray-400 p-4">
+              Aucun outil disponible pour le moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {popularTools.map((tool) => (
+                <div key={tool.id} className="tool-card bg-gray-900/50 p-6 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-all duration-300 text-center">
+                  <AIQuickView
+                    id={tool.id}
+                    slug={tool.slug}
+                    name={tool.name}
+                    description={tool.description}
+                    image_url={tool.image_url}
+                    website_url={tool.website_url}
+                    category={tool.category}
+                    pricing={tool.pricing}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+
+        .tool-card {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .tool-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+          );
+          transform: translateX(-100%);
+          animation: shimmer 3s infinite;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .tool-card:hover::before {
+          animation: shimmer 1.5s infinite;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+        }
+      `}</style>
     </div>
   );
 }

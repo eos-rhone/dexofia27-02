@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Globe, Youtube, Users, GraduationCap, Book, Star, Sparkles, Zap } from 'lucide-react';
+import { Globe, Youtube, Users, GraduationCap, Book, Star, Sparkles, Zap, Gauge, ExternalLink } from 'lucide-react';
+import { AIModal } from '../components/AIModal';
+import { useMousePosition } from '../hooks/useMousePosition';
+import './Learn.css';
 
 interface Tutorial {
   id: string;
@@ -12,11 +15,18 @@ interface Tutorial {
   image: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   language: 'FR' | 'EN';
+  features?: string[];
+  hasPaidPlans?: boolean;
+  officialUrl?: string;
 }
 
 export function Learn() {
+  useMousePosition();
   const [activeTab, setActiveTab] = useState<'tutorials' | 'courses'>('tutorials');
   const [selectedLanguage, setSelectedLanguage] = useState<'all' | 'fr' | 'en'>('all');
+  const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
+  const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tutorials: Tutorial[] = [
     {
@@ -29,7 +39,14 @@ export function Learn() {
       rating: 4.8,
       image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
       level: 'beginner',
-      language: 'FR'
+      language: 'FR',
+      features: [
+        'Introduction à l\'interface',
+        'Techniques de prompt',
+        'Cas d\'utilisation pratiques'
+      ],
+      hasPaidPlans: true,
+      officialUrl: 'https://chat.openai.com'
     },
     {
       id: '2',
@@ -41,7 +58,14 @@ export function Learn() {
       rating: 4.9,
       image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
       level: 'intermediate',
-      language: 'FR'
+      language: 'FR',
+      features: [
+        'Intégration d\'APIs',
+        'Modèles personnalisés',
+        'Optimisation des résultats'
+      ],
+      hasPaidPlans: false,
+      officialUrl: 'https://example.com/dev-ia'
     },
     {
       id: '3',
@@ -53,16 +77,35 @@ export function Learn() {
       rating: 4.7,
       image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba',
       level: 'beginner',
-      language: 'FR'
+      language: 'FR',
+      features: [
+        'Installation locale',
+        'Prompts efficaces',
+        'Techniques avancées'
+      ],
+      hasPaidPlans: true,
+      officialUrl: 'https://stability.ai'
     }
   ];
 
   const filteredTutorials = tutorials.filter(tutorial => {
-    if (selectedLanguage === 'all') return true;
-    if (selectedLanguage === 'fr') return tutorial.language === 'FR';
-    if (selectedLanguage === 'en') return tutorial.language === 'EN';
+    if (selectedLanguage !== 'all' && tutorial.language !== (selectedLanguage === 'fr' ? 'FR' : 'EN')) {
+      return false;
+    }
+    if (selectedLevel !== 'all' && tutorial.level !== selectedLevel) {
+      return false;
+    }
     return true;
   });
+
+  const handleTutorialClick = (tutorial: Tutorial, e: React.MouseEvent) => {
+    // Vérifie si le clic n'est pas sur le lien externe
+    const target = e.target as HTMLElement;
+    if (!target.closest('.external-link')) {
+      setSelectedTutorial(tutorial);
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white px-6 py-12">
@@ -92,25 +135,51 @@ export function Learn() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mb-12">
-          <Globe className="w-5 h-5 text-gray-400" />
-          {[
-            { code: 'all', label: 'Toutes les langues' },
-            { code: 'fr', label: 'Français' },
-            { code: 'en', label: 'Anglais' }
-          ].map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => setSelectedLanguage(lang.code as 'all' | 'fr' | 'en')}
-              className={`px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
-                selectedLanguage === lang.code
-                  ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                  : 'text-gray-400 hover:text-blue-500'
-              }`}
-            >
-              {lang.label}
-            </button>
-          ))}
+        <div className="flex flex-col items-center justify-center gap-6 mb-12">
+          {/* Sélection de la langue */}
+          <div className="flex items-center justify-center gap-2">
+            <Globe className="w-5 h-5 text-gray-400" />
+            {[
+              { code: 'all', label: 'Toutes les langues' },
+              { code: 'fr', label: 'Français' },
+              { code: 'en', label: 'Anglais' }
+            ].map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setSelectedLanguage(lang.code as 'all' | 'fr' | 'en')}
+                className={`px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                  selectedLanguage === lang.code
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-400 hover:text-blue-500'
+                }`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sélection du niveau */}
+          <div className="flex items-center justify-center gap-2">
+            <Gauge className="w-5 h-5 text-gray-400" />
+            {[
+              { code: 'all', label: 'Tous les niveaux' },
+              { code: 'beginner', label: 'Débutant' },
+              { code: 'intermediate', label: 'Intermédiaire' },
+              { code: 'advanced', label: 'Avancé' }
+            ].map((level) => (
+              <button
+                key={level.code}
+                onClick={() => setSelectedLevel(level.code as 'all' | 'beginner' | 'intermediate' | 'advanced')}
+                className={`px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                  selectedLevel === level.code
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-400 hover:text-blue-500'
+                }`}
+              >
+                {level.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center justify-center gap-4 mb-12 bg-gray-900/50 p-1 rounded-lg max-w-xs mx-auto">
@@ -138,7 +207,8 @@ export function Learn() {
           {filteredTutorials.map((tutorial) => (
             <div
               key={tutorial.id}
-              className="bg-gray-900/50 rounded-xl overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group"
+              className="bg-gray-900/50 rounded-xl overflow-hidden border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group cursor-pointer"
+              onClick={(e) => handleTutorialClick(tutorial, e)}
             >
               <div className="relative overflow-hidden">
                 <img
@@ -155,6 +225,17 @@ export function Learn() {
                   <Youtube className="w-4 h-4" />
                   {tutorial.duration}
                 </div>
+                {tutorial.officialUrl && (
+                  <a
+                    href={tutorial.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="external-link absolute top-4 right-4 p-2 bg-black/50 backdrop-blur-sm rounded-full transform hover:scale-110 transition-transform"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="w-4 h-4 text-blue-500" />
+                  </a>
+                )}
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-500 transition-colors">
@@ -184,6 +265,24 @@ export function Learn() {
             </div>
           ))}
         </div>
+
+        {selectedTutorial && (
+          <AIModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedTutorial(null);
+            }}
+            ai={{
+              id: selectedTutorial.id,
+              name: selectedTutorial.title,
+              shortDescription: selectedTutorial.description,
+              features: selectedTutorial.features || [],
+              image: selectedTutorial.image,
+              hasPaidPlans: selectedTutorial.hasPaidPlans || false
+            }}
+          />
+        )}
       </div>
     </div>
   );

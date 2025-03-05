@@ -76,7 +76,7 @@ import {
   Plane
 } from 'lucide-react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { getCategories, getTools } from '../lib/supabase';
+import { getCategories, getTools, fixMissingIcons } from '../lib/supabase';
 import { AiBrain } from '../components/icons/AiBrain';
 import { Acoustic } from '../components/icons/Acoustic';
 
@@ -95,81 +95,81 @@ interface Category {
 }
 
 const iconMap = {
-  Headphones,
-  LineChart,
-  Microscope,
-  Rocket,
-  FlaskConical,
-  CircuitBoard,
-  Briefcase,
-  Leaf,
-  Mountain,
-  Cube,
-  Factory,
-  Truck,
-  Film,
-  Building,
-  Building2,
-  Waves,
-  Search,
-  Pencil,
-  Dumbbell,
-  Folder,
-  Brain,
-  MessageSquare,
-  Car,
-  Flask: Beaker,
-  Music,
-  Shield,
-  Layout,
-  Code,
-  GraduationCap,
-  Image,
-  Home,
-  Gamepad,
-  Scale,
-  Globe,
-  Shirt,
-  Camera,
-  Zap,
-  Glasses,
-  Radio,
-  Languages,
-  Video,
-  Mic2,
-  Database,
-  Heart,
-  Bot,
-  Users,
-  AiBrain: Brain,
-  Acoustic: Music,
-  Palette,
-  Coffee,
-  ShoppingCart,
-  DollarSign,
-  ListCheck: CheckSquare,
-  Cpu,
-  FileText,
-  Box,
-  Cloud,
-  Scissors,
-  Settings,
-  Speaker,
-  Clock,
-  PenTool,
-  Phone,
-  Eye,
-  PieChart,
-  MessageCircle,
-  Link,
-  Cog,
-  Printer,
-  Server,
-  Landmark,
-  Plane,
-  Star,
-  CheckSquare,
-  ListTodo
+  headphones: Headphones,
+  linechart: LineChart,
+  microscope: Microscope,
+  rocket: Rocket,
+  flaskconical: FlaskConical,
+  circuitboard: CircuitBoard,
+  briefcase: Briefcase,
+  leaf: Leaf,
+  mountain: Mountain,
+  cube: Cube,
+  factory: Factory,
+  truck: Truck,
+  film: Film,
+  building: Building,
+  building2: Building2,
+  waves: Waves,
+  search: Search,
+  pencil: Pencil,
+  dumbbell: Dumbbell,
+  folder: Folder,
+  brain: Brain,
+  messagesquare: MessageSquare,
+  car: Car,
+  flask: Beaker,
+  music: Music,
+  shield: Shield,
+  layout: Layout,
+  code: Code,
+  graduationcap: GraduationCap,
+  image: Image,
+  home: Home,
+  gamepad: Gamepad,
+  scale: Scale,
+  globe: Globe,
+  shirt: Shirt,
+  camera: Camera,
+  zap: Zap,
+  glasses: Glasses,
+  radio: Radio,
+  languages: Languages,
+  video: Video,
+  mic2: Mic2,
+  database: Database,
+  heart: Heart,
+  bot: Bot,
+  users: Users,
+  aibrain: Brain,
+  acoustic: Music,
+  palette: Palette,
+  coffee: Coffee,
+  shoppingcart: ShoppingCart,
+  dollarsign: DollarSign,
+  listcheck: CheckSquare,
+  cpu: Cpu,
+  filetext: FileText,
+  box: Box,
+  cloud: Cloud,
+  scissors: Scissors,
+  settings: Settings,
+  speaker: Speaker,
+  clock: Clock,
+  pentool: PenTool,
+  phone: Phone,
+  eye: Eye,
+  piechart: PieChart,
+  messagecircle: MessageCircle,
+  link: Link,
+  cog: Cog,
+  printer: Printer,
+  server: Server,
+  landmark: Landmark,
+  plane: Plane,
+  star: Star,
+  checksquare: CheckSquare,
+  listtodo: ListTodo
 };
 
 const colorClasses = [
@@ -201,27 +201,58 @@ export function Categories() {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Corriger les icônes manquantes avant de charger les catégories
+        await fixMissingIcons();
+        
         const categoriesData = await getCategories();
         
+        if (!categoriesData || categoriesData.length === 0) {
+          setError('Aucune catégorie trouvée');
+          return;
+        }
+
         const categoriesWithTools = await Promise.all(
           categoriesData.map(async (category) => {
-            const tools = await getTools({ 
-              category: category.slug,
-            });
-            
-            const sortedTools = tools.sort((a, b) => b.monthly_users - a.monthly_users);
-            
-            const popularTools = sortedTools.slice(0, 4).map(tool => ({
-              name: tool.name,
-              slug: tool.slug,
-              website_url: tool.website_url
-            }));
-            
-            return {
-              ...category,
-              tool_count: tools.length,
-              popularTools
-            };
+            try {
+              // Récupérer seulement les 4 outils populaires
+              const popularToolsData = await getTools({ 
+                category: category.slug,
+                limit: 4
+              });
+              
+              // Mapper les outils populaires avec vérification des doublons
+              const seenSlugs = new Set();
+              const popularTools = popularToolsData
+                .filter(tool => {
+                  if (!tool.slug) {
+                    console.warn(`Tool without slug found in category ${category.name}`);
+                    return false;
+                  }
+                  if (seenSlugs.has(tool.slug)) {
+                    console.warn(`Duplicate tool slug found in category ${category.name}: ${tool.slug}`);
+                    return false;
+                  }
+                  seenSlugs.add(tool.slug);
+                  return true;
+                })
+                .map(tool => ({
+                  name: tool.name,
+                  slug: tool.slug,
+                  website_url: tool.website_url || '#'
+                }));
+              
+              return {
+                ...category,
+                popularTools
+              };
+            } catch (error) {
+              console.error(`Erreur lors du chargement des outils pour ${category.name}:`, error);
+              return {
+                ...category,
+                popularTools: []
+              };
+            }
           })
         );
         
@@ -271,7 +302,7 @@ export function Categories() {
               {/* Main icon with rotation and scale animation */}
               <div className="relative dark:bg-gray-900/80 p-8 rounded-full transform group-hover:scale-110 transition-transform duration-500">
                 <div className={`w-24 h-24 rounded-2xl flex items-center justify-center`}>
-                  <Icon icon={Folder} size={48} className="text-blue-500" />
+                  <Folder size={48} className="text-blue-500" />
                 </div>
                 
                 {/* Orbiting elements */}
@@ -320,17 +351,28 @@ export function Categories() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCategories.map((category, index) => (
               <div
-                key={category.slug}
+                key={category.id}
                 className="bg-gray-900/50 rounded-xl p-6 border border-gray-800 hover:border-blue-500 transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10"
               >
                 <div className={`w-16 h-16 rounded-2xl ${colorClasses[index % colorClasses.length]} flex items-center justify-center mb-4`}>
                   {(() => {
-                    const IconComponent = iconMap[category.icon];
-                    if (!IconComponent) {
-                      console.warn(`Icône manquante pour ${category.name}: ${category.icon}`);
-                      return <Icon icon={Folder} size={32} className="text-white" />;
-                    }
-                    return <Icon icon={IconComponent} size={32} className="text-white" />;
+                    let icon = category.icon || '';
+                    // Convertir en minuscules et nettoyer le nom de l'icône
+                    const iconKey = icon.toLowerCase()
+                      .replace('/icons/categories/', '')
+                      .replace('.svg', '')
+                      .replace(/[^a-z0-9]/g, '');
+                    
+                    console.log('=== Categories.tsx Debug ===');
+                    console.log('Category:', category.name);
+                    console.log('Original icon:', icon);
+                    console.log('Cleaned icon key:', iconKey);
+                    
+                    // Trouver l'icône dans l'iconMap
+                    const IconComponent = iconMap[iconKey] || iconMap[icon] || iconMap[icon.toLowerCase()] || Folder;
+                    
+                    // Utiliser directement l'icône de Lucide
+                    return <IconComponent size={32} className="text-white" />;
                   })()}
                 </div>
 
@@ -346,9 +388,9 @@ export function Categories() {
                 </p>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {category.popularTools.map((tool) => (
+                  {category.popularTools?.map((tool, toolIndex) => (
                     <a
-                      key={tool.slug}
+                      key={`${category.id}-${tool.slug}-${toolIndex}`}
                       href={tool.website_url}
                       target="_blank"
                       rel="noopener noreferrer"
